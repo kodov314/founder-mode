@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
@@ -12,15 +12,21 @@ const sections = [
     content: [
       {
         subtitle: 'Название стартапа',
-        description: 'Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать.'
+        description: 'Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать.',
+        required: true,
+        placeholder: 'Название стартапа'
       },
       {
         subtitle: 'Описание',
-        description: 'Краткое, но ёмкое описание вашей компании. Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ." Описание – это общий обзор компании и её деятельности: чем вы занимаетесь, какие услуги или продукты предоставляете.'
+        description: 'Краткое, но ёмкое описание вашей компании. Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ." Описание – это общий обзор компании и её деятельности: чем вы занимаетесь, какие услуги или продукты предоставляете.',
+        required: true,
+        placeholder: 'Описание компании'
       },
       {
         subtitle: 'Локация',
-        description: 'Страна и город регистрации или нахождения. Пример: Москва, Российская Федерация'
+        description: 'Страна и город регистрации или нахождения. Пример: Москва, Российская Федерация',
+        required: true,
+        placeholder: 'Страна и город'
       }
     ]
   },
@@ -29,7 +35,9 @@ const sections = [
     content: [
       {
         subtitle: 'Отрасль',
-        description: 'Укажите основные сферы деятельности. Пример: "Аналитика данных", "E-commerce".'
+        description: 'Укажите основные сферы деятельности. Пример: "Аналитика данных", "E-commerce".',
+        required: true,
+        placeholder: 'Укажите отрасль...'
       },
       {
         subtitle: 'Миссия и ценности',
@@ -163,9 +171,10 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
 
 const BusinessFormPage = () => {
   const navigate = useNavigate();
-  const { processWithAI, currentIteration } = useContext(AIContext);
+  const { generateResults, isLoading } = useContext(AIContext);
   const [mainText, setMainText] = useState('');
   const [openSection, setOpenSection] = useState(null);
+  const [progress, setProgress] = useState(0);
 
   const [sectionValues, setSectionValues] = useState(
     sections.reduce((acc, section) => ({
@@ -193,24 +202,50 @@ const BusinessFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setProgress(0);
     
     try {
+      console.log('Submitting form...');
+      
       const businessData = {
-        description: mainText,
+        description: mainText || '',
+        industry: sectionValues['2. Данные о вашей деятельности']?.['Отрасль'] || '',
+        target_audience: '',
         sections: sections.map(section => ({
           title: section.title,
           content: section.content.map(item => ({
             subtitle: item.subtitle,
             value: sectionValues[section.title]?.[item.subtitle] || ''
-          }))
+          })).filter(item => item.value)
         }))
       };
 
-      await processWithAI(businessData);
+      if (sectionValues['1. Общая информация о компании']) {
+        businessData.name = sectionValues['1. Общая информация о компании']['Название стартапа'];
+        businessData.location = sectionValues['1. Общая информация о компании']['Локация'];
+      }
+
+      if (sectionValues['2. Данные о вашей деятельности']) {
+        businessData.mission = sectionValues['2. Данные о вашей деятельности']['Миссия и ценности'];
+        businessData.features = sectionValues['2. Данные о вашей деятельности']['Ключевые особенности'];
+      }
+
+      console.log('Business data:', businessData);
+
+      if (!businessData.description) {
+        throw new Error('Пожалуйста, заполните описание бизнеса');
+      }
+
+      const onProgress = (value) => {
+        setProgress(value);
+      };
+
+      await generateResults(businessData, onProgress);
+      console.log('Processing complete, navigating...');
       navigate('/results');
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Можно добавить уведомление пользователю об ошибке
+      alert(error.message || 'Произошла ошибка при генерации лендинга. Пожалуйста, попробуйте снова.');
     }
   };
 
@@ -256,12 +291,17 @@ const BusinessFormPage = () => {
                     <h3 className="text-pink-500 font-medium mb-1">
                       {item.subtitle}
                     </h3>
+                    <label>
+                      {item.subtitle} 
+                      {item.required && <span style={{ color: '#ff1744' }}>*</span>}
+                    </label>
                     <textarea
                       value={sectionValues[section.title]?.[item.subtitle] || ''}
                       onChange={(e) => handleFieldChange(section.title, item.subtitle, e.target.value)}
                       className="w-full p-2 bg-gray-800/50 rounded-md text-white"
                       rows={3}
                       placeholder={item.description}
+                      required={item.required}
                     />
                   </div>
                 ))}
@@ -269,18 +309,47 @@ const BusinessFormPage = () => {
             </Accordion>
           ))}
 
-          <motion.button
+          {isLoading && (
+            <div className="fixed top-0 left-0 right-0 z-50">
+              <div className="bg-gray-800 h-1">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-[#ff40ff] to-[#a041ff]"
+                  initial={{ width: "0%" }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+              <div className="text-center text-sm text-gray-400 mt-1">
+                {progress < 100 ? 'Генерация лендинга...' : 'Завершаем...'}
+              </div>
+            </div>
+          )}
+
+          <button
             type="submit"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full px-8 py-4 text-lg text-white rounded-full
-              bg-gradient-to-r from-[#ff40ff] to-[#a041ff] 
-              hover:opacity-90 transition-all
-              shadow-[0_0_15px_rgba(255,64,255,0.5)]
-              animate-gradient"
+            disabled={isLoading}
+            className={`
+              w-full py-4 rounded-full font-semibold text-white
+              transition-all duration-300
+              ${isLoading 
+                ? 'bg-gray-600 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#ff40ff] to-[#a041ff] hover:opacity-90'
+              }
+            `}
           >
-            Отправить ответ ({currentIteration}/6)
-          </motion.button>
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"
+                />
+                Генерация ({Math.round(progress)}%)
+              </div>
+            ) : (
+              'Отправить ответ'
+            )}
+          </button>
         </form>
       </motion.div>
     </div>
