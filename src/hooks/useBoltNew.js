@@ -1,66 +1,72 @@
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://cdllppddyexrpocydrqk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkbGxwcGRkeWV4cnBvY3lkcnFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwNTk4MTksImV4cCI6MjA1MDYzNTgxOX0.wV9cX1fOZ_wIim4hanRwpUZzlQvmIzbyDFC9zoucFgY';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+const BOLT_API_KEY = process.env.REACT_APP_BOLT_API_KEY;
 
 export const useBoltNew = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [hostingUrl, setHostingUrl] = useState(null);
 
   const generateLanding = async (businessData) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('Sending business data:', businessData);
-
-      // Формируем HTML на основе полученных данных
-      const landingHTML = `
-        <div class="landing">
-          <h1>${businessData.description || ''}</h1>
-          ${businessData.sections.map(section => `
-            <section>
-              <h2>${section.title}</h2>
-              ${section.content.map(item => `
-                <div>
-                  <h3>${item.subtitle}</h3>
-                  <p>${item.value || 'Нет данных'}</p>
-                </div>
-              `).join('')}
-            </section>
-          `).join('')}
-        </div>
-      `;
-
-      // Сохраняем в Supabase
-      const { data: generation, error: insertError } = await supabase
-        .from('landing_generations')
-        .insert([
-          {
-            business_data: businessData,
-            status: 'completed',
-            result: {
-              html: landingHTML,
-              css: `
-                .landing {
-                  max-width: 1200px;
-                  margin: 0 auto;
-                  padding: 2rem;
-                }
-              `,
-              assets: {}
+      // Формируем запрос к bolt.new API
+      const response = await fetch('https://api.bolt.new/v1/sites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${BOLT_API_KEY}`
+        },
+        body: JSON.stringify({
+          name: businessData.sections[0].content[0].value || 'founder-mode-landing',
+          description: businessData.description,
+          template: 'landing-page',
+          content: {
+            title: businessData.sections[0].content[0].value,
+            description: businessData.description,
+            sections: businessData.sections.map(section => ({
+              title: section.title,
+              items: section.content.map(item => ({
+                title: item.subtitle,
+                description: item.value
+              }))
+            }))
+          },
+          styling: {
+            theme: 'modern',
+            colors: {
+              primary: '#ff40ff',
+              secondary: '#a041ff',
+              background: '#ffffff',
+              text: '#2b3147'
+            },
+            fonts: {
+              heading: 'Inter',
+              body: 'Inter'
             }
+          },
+          features: {
+            animations: true,
+            responsiveness: true,
+            contactForm: true
           }
-        ])
-        .select()
-        .single();
+        })
+      });
 
-      if (insertError) throw insertError;
+      if (!response.ok) {
+        throw new Error('Failed to generate landing page');
+      }
 
-      return generation.result;
+      const data = await response.json();
+      setHostingUrl(data.url);
+
+      return {
+        hostingUrl: data.url,
+        previewUrl: data.previewUrl,
+        status: 'completed'
+      };
 
     } catch (err) {
       console.error('Error generating landing:', err);
@@ -71,5 +77,5 @@ export const useBoltNew = () => {
     }
   };
 
-  return { generateLanding, isLoading, error };
+  return { generateLanding, isLoading, error, hostingUrl };
 }; 

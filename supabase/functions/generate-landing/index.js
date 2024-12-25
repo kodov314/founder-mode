@@ -1,115 +1,109 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.2.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': '*'
 }
 
 serve(async (req) => {
-  // Обработка CORS
+  // Логируем входящий запрос
+  console.log('Request method:', req.method);
+  console.log('Request headers:', Object.fromEntries(req.headers));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
   }
 
   try {
-    // Получаем данные из запроса
-    const { id } = await req.json()
+    const body = await req.json();
+    console.log('Request body:', body);
 
-    // Инициализируем Supabase клиент
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL'),
-      Deno.env.get('SUPABASE_ANON_KEY')
-    )
-
-    // Получаем данные генерации
-    const { data: generation, error: fetchError } = await supabaseClient
-      .from('landing_generations')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (fetchError) throw fetchError
-
-    // Формируем данные для генерации лендинга
-    const landingData = {
-      title: generation.business_data.description,
-      sections: generation.business_data.sections,
-      // Добавляем дополнительные параметры для генерации
-      style: {
-        theme: 'modern',
-        colors: {
-          primary: '#ff40ff',
-          secondary: '#a041ff'
-        }
-      }
+    // Проверяем наличие OpenAI API ключа
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
-    // Здесь будет логика генерации лендинга
-    const generatedLanding = {
-      html: `
-        <!-- Сгенерированный HTML код лендинга -->
-        <div class="landing-page">
-          <header>...</header>
-          <main>...</main>
-          <footer>...</footer>
-        </div>
-      `,
-      css: `
-        /* Сгенерированные стили */
-        .landing-page {
-          /* ... */
+    // Инициализируем OpenAI
+    const configuration = new Configuration({
+      apiKey
+    })
+    const openai = new OpenAIApi(configuration)
+
+    // Формируем промпт
+    const prompt = `
+    Создай контент для лендинга на основе следующих данных:
+
+    Описание бизнеса: ${body.description}
+    Отрасль: ${body.industry}
+    
+    Дополнительная информация:
+    ${JSON.stringify(body.sections, null, 2)}
+    
+    Сгенерируй следующие элементы:
+    1. Заголовок (до 6 слов, должен привлекать внимание)
+    2. Подзаголовок (1-2 предложения о главной ценности)
+    3. 3 ключевые особенности (название до 3 слов и краткое описание)
+    4. Миссию компании (1 предложение)
+    5. Призыв к действию (короткая фраза)
+    
+    Ответ должен быть в формате JSON:
+    {
+      "title": "...",
+      "subtitle": "...",
+      "features": [
+        { "title": "...", "description": "..." }
+      ],
+      "mission": "...",
+      "cta": "..."
+    }`
+
+    // Получаем ответ от GPT
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "Ты - опытный копирайтер, специализирующийся на создании лендингов."
+        },
+        {
+          role: "user",
+          content: prompt
         }
-      `,
-      assets: {
-        // Ссылки на изображения и другие ресурсы
-      }
-    }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    })
 
-    // Обновляем статус и сохраняем результат
-    const { error: updateError } = await supabaseClient
-      .from('landing_generations')
-      .update({
-        status: 'completed',
-        result: generatedLanding
-      })
-      .eq('id', id)
-
-    if (updateError) throw updateError
+    const content = JSON.parse(completion.data.choices[0].message.content)
 
     return new Response(
-      JSON.stringify({ success: true, data: generatedLanding }),
+      JSON.stringify(content),
       { 
         headers: { 
           ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        } 
-      }
+          'Content-Type': 'application/json'
+        },
+        status: 200,
+      },
     )
 
   } catch (error) {
-    console.error('Error in generate-landing function:', error)
-
-    // Обновляем статус с ошибкой
-    if (id) {
-      await supabaseClient
-        .from('landing_generations')
-        .update({
-          status: 'error',
-          error: error.message
-        })
-        .eq('id', id)
-    }
-
+    console.error('Error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        error: error.message,
+        stack: error.stack
+      }),
       { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        }, 
-        status: 400 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
-}) 
+})
