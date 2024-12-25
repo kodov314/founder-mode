@@ -1,42 +1,63 @@
 import { useContext } from 'react';
-import { motion } from 'framer-motion';
-import { WavyBackground } from '../components/ui/wavy-background';
-import { SpotlightCard } from '../components/ui/spotlight-card';
 import { AIContext } from '../context/AIContext';
+import { GeneratedLanding } from '../components/GeneratedLanding';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const ResultsPage = () => {
-  const { aiResponse } = useContext(AIContext);
+  const { results, isLoading, error } = useContext(AIContext);
+  
+  console.log('Results page state:', { results, isLoading, error });
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r 
-          from-[#ff40ff] to-[#a041ff] mb-6 text-center
-          drop-shadow-[0_0_15px_rgba(255,64,255,0.3)]">
-          Результаты анализа
-        </h1>
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-4 text-red-500">Произошла ошибка</h2>
+          <p className="text-gray-400 mb-8">{error}</p>
+          <Link 
+            to="/business-form"
+            className="px-6 py-3 bg-[#ff40ff] text-white rounded-full hover:opacity-90"
+          >
+            Попробовать снова
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-        <SpotlightCard className="p-6">
-          <div className="space-y-6">
-            {aiResponse ? (
-              <div className="text-white">
-                {/* Здесь будет отображаться ответ от AI */}
-                <pre className="whitespace-pre-wrap">{aiResponse}</pre>
-              </div>
-            ) : (
-              <div className="text-gray-400 text-center">
-                Ожидание результатов анализа...
-              </div>
-            )}
-          </div>
-        </SpotlightCard>
-      </motion.div>
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-4 border-[#ff40ff] border-t-transparent rounded-full mx-auto mb-4"
+          />
+          <p className="text-white">Генерация лендинга...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!results?.landing) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-gray-400 mb-8">Ожидание данных для генерации...</p>
+          <Link 
+            to="/business-form"
+            className="px-6 py-3 bg-[#ff40ff] text-white rounded-full hover:opacity-90"
+          >
+            Вернуться к форме
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return <GeneratedLanding landingData={results.landing} />;
 };
 
 export default ResultsPage; 

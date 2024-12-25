@@ -6,6 +6,94 @@ import { WavyBackground } from '../components/ui/wavy-background';
 import { SpotlightCard } from '../components/ui/spotlight-card';
 import { AIContext } from '../context/AIContext';
 
+const sections = [
+  {
+    title: '1. Общая информация о компании',
+    content: [
+      {
+        subtitle: 'Название стартапа',
+        description: 'Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать.'
+      },
+      {
+        subtitle: 'Описание',
+        description: 'Краткое, но ёмкое описание вашей компании. Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ." Описание – это общий обзор компании и её деятельности: чем вы занимаетесь, какие услуги или продукты предоставляете.'
+      },
+      {
+        subtitle: 'Локация',
+        description: 'Страна и город регистрации или нахождения. Пример: Москва, Российская Федерация'
+      }
+    ]
+  },
+  {
+    title: '2. Данные о вашей деятельности',
+    content: [
+      {
+        subtitle: 'Отрасль',
+        description: 'Укажите основные сферы деятельности. Пример: "Аналитика данных", "E-commerce".'
+      },
+      {
+        subtitle: 'Миссия и ценности',
+        description: 'Кратко объясните, какую проблему решает ваш продукт, в чём его ценность на рынке. Миссия и ценности – это суть, "зачем" вы делаете то, что делаете, какую проблему решаете и какие идеалы лежат в основе вашего продукта или сервиса.'
+      },
+      {
+        subtitle: 'Ключевые особенности',
+        description: 'Ваши конкурентные преимущества (например, "AI-аналитика для малого и среднего бизнеса").'
+      }
+    ]
+  },
+  {
+    title: '3. Финансовые данные',
+    content: [
+      {
+        subtitle: 'Привлечённые инвестиции или бюджет',
+        description: 'Если у вас уже есть финансирование, укажите суммы.'
+      },
+      {
+        subtitle: 'Планы по финансированию',
+        description: 'Укажите, сколько денег вы ищете и на что планируете их потратить. Подсказка: Возможно вы хотите взять кредит, по какой ставке? Или у вас есть "Love money"'
+      },
+      {
+        subtitle: 'Затраты',
+        description: 'Какие затраты вы ведёте/видите в течение дня, месяца, года? Пример: Ежемесячно мне нужно платить за подписной сервис X, Y, Z - 100$, работа сотрудников, маркетинг, закупка материалов и другие.'
+      },
+      {
+        subtitle: 'Цена продажи',
+        description: 'Какая на ваш взгляд цена продажи вашего сервиса/продукта? Пример: 200$ в месяц на годовой подписке или 150$ за единицу продукта.'
+      }
+    ]
+  },
+  {
+    title: '4. Команда',
+    content: [
+      {
+        subtitle: 'Ключевые сотрудники',
+        description: 'Укажите основателей, их должности и профессиональный опыт и экспертизу которая может помочь в бизнесе. Добавьте ссылки на их LinkedIn или другие профессиональные профили.'
+      },
+      {
+        subtitle: 'Численность команды',
+        description: 'Примерное количество сотрудников в стартапе. Пример: Кирилл Самородов: Expertise in blockchain and FinTech... CEO/CTO/Director...'
+      }
+    ]
+  },
+  {
+    title: '5. Продукты и услуги',
+    content: [
+      {
+        subtitle: 'Описание продукта',
+        description: 'Основные функции, вторичные функции (на будущее), целевая аудитория. Пример целевой аудитории: Возраст: 18–35 лет, Профессия: студенты, джуниор-разработчики...'
+      },
+      {
+        subtitle: 'Кейсы',
+        description: 'Если есть успешные кейсы продаж вашего продукта/сервиса или отзывы клиентов, добавьте их. Ссылки на демо-версии, примеры использования.'
+      },
+      {
+        subtitle: 'Развитие Продукта',
+        description: 'Последующие фичи или продукты/сервисы которые можно добавить'
+      }
+    ]
+  }
+];
+
 const Accordion = ({ title, children, isOpen, onClick }) => {
   return (
     <div className="mb-4">
@@ -79,103 +167,52 @@ const BusinessFormPage = () => {
   const [mainText, setMainText] = useState('');
   const [openSection, setOpenSection] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await processWithAI({ description: mainText });
-    navigate('/results');
-  };
+  const [sectionValues, setSectionValues] = useState(
+    sections.reduce((acc, section) => ({
+      ...acc,
+      [section.title]: section.content.reduce((contentAcc, content) => ({
+        ...contentAcc,
+        [content.subtitle]: ''
+      }), {})
+    }), {})
+  );
 
   const handleAccordionClick = (index) => {
     setOpenSection(openSection === index ? null : index);
   };
 
-  const sections = [
-    {
-      title: '1. Общая информация о компании',
-      content: [
-        {
-          subtitle: 'Название стартапа',
-          description: 'Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать.'
-        },
-        {
-          subtitle: 'Описание',
-          description: 'Краткое, но ёмкое описание вашей компании. Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ." Описание – это общий обзор компании и её деятельности: чем вы занимаетесь, какие услуги или продукты предоставляете.'
-        },
-        {
-          subtitle: 'Локация',
-          description: 'Страна и город регистрации или нахождения. Пример: Москва, Российская Федерация'
-        }
-      ]
-    },
-    {
-      title: '2. Данные о вашей деятельности',
-      content: [
-        {
-          subtitle: 'Отрасль',
-          description: 'Укажите основные сферы деятельности. Пример: "Аналитика данных", "E-commerce".'
-        },
-        {
-          subtitle: 'Миссия и ценности',
-          description: 'Кратко объясните, какую проблему решает ваш продукт, в чём его ценность на рынке. Миссия и ценности – это суть, "зачем" вы делаете то, что делаете, какую проблему решаете и какие идеалы лежат в основе вашего продукта или сервиса.'
-        },
-        {
-          subtitle: 'Ключевые особенности',
-          description: 'Ваши конкурентные преимущества (например, "AI-аналитика для малого и среднего бизнеса").'
-        }
-      ]
-    },
-    {
-      title: '3. Финансовые данные',
-      content: [
-        {
-          subtitle: 'Привлечённые инвестиции или бюджет',
-          description: 'Если у вас уже есть финансирование, укажите суммы.'
-        },
-        {
-          subtitle: 'Планы по финансированию',
-          description: 'Укажите, сколько денег вы ищете и на что планируете их потратить. Подсказка: Возможно вы хотите взять кредит, по какой ставке? Или у вас есть "Love money"'
-        },
-        {
-          subtitle: 'Затраты',
-          description: 'Какие затраты вы ведёте/видите в течение дня, месяца, года? Пример: Ежемесячно мне нужно платить за подписной сервис X, Y, Z - 100$, работа сотрудников, маркетинг, закупка материалов и другие.'
-        },
-        {
-          subtitle: 'Цена продажи',
-          description: 'Какая на ваш взгляд цена продажи вашего сервиса/продукта? Пример: 200$ в месяц на годовой подписке или 150$ за единицу продукта.'
-        }
-      ]
-    },
-    {
-      title: '4. Команда',
-      content: [
-        {
-          subtitle: 'Ключевые сотрудники',
-          description: 'Укажите основателей, их должности и профессиональный опыт и экспертизу которая может помочь в бизнесе. Добавьте ссылки на их LinkedIn или другие профессиональные профили.'
-        },
-        {
-          subtitle: 'Численность команды',
-          description: 'Примерное количество сотрудников в стартапе. Пример: Кирилл Самородов: Expertise in blockchain and FinTech... CEO/CTO/Director...'
-        }
-      ]
-    },
-    {
-      title: '5. Продукты и услуги',
-      content: [
-        {
-          subtitle: 'Описание продукта',
-          description: 'Основные функции, вторичные функции (на будущее), целевая аудитория. Пример целевой аудитории: Возраст: 18–35 лет, Профессия: студенты, джуниор-разработчики...'
-        },
-        {
-          subtitle: 'Кейсы',
-          description: 'Если есть успешные кейсы продаж вашего продукта/сервиса или отзывы клиентов, добавьте их. Ссылки на демо-версии, примеры использования.'
-        },
-        {
-          subtitle: 'Развитие Продукта',
-          description: 'Последующие фичи или продукты/сервисы которые можно добавить'
-        }
-      ]
+  const handleFieldChange = (sectionTitle, subtitle, value) => {
+    setSectionValues(prev => ({
+      ...prev,
+      [sectionTitle]: {
+        ...prev[sectionTitle],
+        [subtitle]: value
+      }
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const businessData = {
+        description: mainText,
+        sections: sections.map(section => ({
+          title: section.title,
+          content: section.content.map(item => ({
+            subtitle: item.subtitle,
+            value: sectionValues[section.title]?.[item.subtitle] || ''
+          }))
+        }))
+      };
+
+      await processWithAI(businessData);
+      navigate('/results');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      // Можно добавить уведомление пользователю об ошибке
     }
-  ];
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -211,10 +248,7 @@ const BusinessFormPage = () => {
               key={index}
               title={section.title}
               isOpen={openSection === index}
-              onClick={(e) => {
-                e.preventDefault();
-                handleAccordionClick(index);
-              }}
+              onClick={() => handleAccordionClick(index)}
             >
               <div className="space-y-4">
                 {section.content.map((item, i) => (
@@ -222,9 +256,13 @@ const BusinessFormPage = () => {
                     <h3 className="text-pink-500 font-medium mb-1">
                       {item.subtitle}
                     </h3>
-                    <p className="text-gray-300">
-                      {item.description}
-                    </p>
+                    <textarea
+                      value={sectionValues[section.title]?.[item.subtitle] || ''}
+                      onChange={(e) => handleFieldChange(section.title, item.subtitle, e.target.value)}
+                      className="w-full p-2 bg-gray-800/50 rounded-md text-white"
+                      rows={3}
+                      placeholder={item.description}
+                    />
                   </div>
                 ))}
               </div>
