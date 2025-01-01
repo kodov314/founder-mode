@@ -2,7 +2,7 @@ import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { WavyBackground } from '../components/ui/wavy-background';
+import { Button } from '../components/ui/button';
 import { SpotlightCard } from '../components/ui/spotlight-card';
 import { AIContext } from '../context/AIContext';
 
@@ -37,10 +37,7 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
         <ChevronDownIcon 
           className={`
             w-5 h-5 transition-transform duration-300
-            ${isOpen 
-              ? 'rotate-180 text-[#ff40ff]' 
-              : 'text-white'
-            }
+            ${isOpen ? 'rotate-180 text-[#ff40ff]' : 'text-white'}
           `}
         />
       </button>
@@ -56,14 +53,6 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
             <div className="p-6 bg-gray-800/30 rounded-b-lg border-l-2 border-[#ff40ff]/30">
               <div className="space-y-6">
                 {children}
-                <div className="text-sm text-gray-400 mt-4 flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  <span>
-                    Заполните эту информацию максимально подробно для получения качественного анализа
-                  </span>
-                </div>
               </div>
             </div>
           </motion.div>
@@ -73,178 +62,316 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
   );
 };
 
+const FormField = ({ label, type = "text", placeholder, value, onChange, description }) => (
+  <div className="space-y-2">
+    <label className="block text-white font-medium">{label}</label>
+    {type === "textarea" ? (
+      <textarea
+        className="w-full p-3 rounded-lg bg-gray-800/50 border border-gray-700 
+          text-white placeholder-gray-400 focus:border-[#ff40ff]/50 
+          focus:ring-1 focus:ring-[#ff40ff]/20 transition-colors"
+        rows={4}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
+    ) : (
+      <input
+        type={type}
+        className="w-full p-3 rounded-lg bg-gray-800/50 border border-gray-700 
+          text-white placeholder-gray-400 focus:border-[#ff40ff]/50 
+          focus:ring-1 focus:ring-[#ff40ff]/20 transition-colors"
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
+    )}
+    {description && (
+      <p className="text-sm text-gray-400">{description}</p>
+    )}
+  </div>
+);
+
 const BusinessFormPage = () => {
   const navigate = useNavigate();
-  const { processWithAI, currentIteration } = useContext(AIContext);
-  const [mainText, setMainText] = useState('');
+  const { setBusinessData } = useContext(AIContext);
   const [openSection, setOpenSection] = useState(null);
+  const [formData, setFormData] = useState({
+    businessIdea: '',
+    companyName: '',
+    description: '',
+    location: '',
+    industry: '',
+    mission: '',
+    features: '',
+    investments: '',
+    financingPlans: '',
+    expenses: '',
+    pricing: '',
+    team: '',
+    teamSize: '',
+    product: '',
+    targetAudience: '',
+    cases: '',
+    development: ''
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await processWithAI({ description: mainText });
-    navigate('/results');
+  const handleSubmit = async () => {
+    setBusinessData(formData);
+    navigate('/landing');
   };
 
-  const handleAccordionClick = (index) => {
-    setOpenSection(openSection === index ? null : index);
-  };
+  const getFilledFieldsCount = () => {
+    const sections = {
+      1: ['companyName', 'description', 'location'],
+      2: ['industry', 'mission', 'features'],
+      3: ['investments', 'financingPlans', 'expenses', 'pricing'],
+      4: ['team', 'teamSize'],
+      5: ['product', 'targetAudience', 'cases', 'development']
+    };
 
-  const sections = [
-    {
-      title: '1. Общая информация о компании',
-      content: [
-        {
-          subtitle: 'Название стартапа',
-          description: 'Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать.'
-        },
-        {
-          subtitle: 'Описание',
-          description: 'Краткое, но ёмкое описание вашей компании. Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ." Описание – это общий обзор компании и её деятельности: чем вы занимаетесь, какие услуги или продукты предоставляете.'
-        },
-        {
-          subtitle: 'Локация',
-          description: 'Страна и город регистрации или нахождения. Пример: Москва, Российская Федерация'
-        }
-      ]
-    },
-    {
-      title: '2. Данные о вашей деятельности',
-      content: [
-        {
-          subtitle: 'Отрасль',
-          description: 'Укажите основные сферы деятельности. Пример: "Аналитика данных", "E-commerce".'
-        },
-        {
-          subtitle: 'Миссия и ценности',
-          description: 'Кратко объясните, какую проблему решает ваш продукт, в чём его ценность на рынке. Миссия и ценности – это суть, "зачем" вы делаете то, что делаете, какую проблему решаете и какие идеалы лежат в основе вашего продукта или сервиса.'
-        },
-        {
-          subtitle: 'Ключевые особенности',
-          description: 'Ваши конкурентные преимущества (например, "AI-аналитика для малого и среднего бизнеса").'
-        }
-      ]
-    },
-    {
-      title: '3. Финансовые данные',
-      content: [
-        {
-          subtitle: 'Привлечённые инвестиции или бюджет',
-          description: 'Если у вас уже есть финансирование, укажите суммы.'
-        },
-        {
-          subtitle: 'Планы по финансированию',
-          description: 'Укажите, сколько денег вы ищете и на что планируете их потратить. Подсказка: Возможно вы хотите взять кредит, по какой ставке? Или у вас есть "Love money"'
-        },
-        {
-          subtitle: 'Затраты',
-          description: 'Какие затраты вы ведёте/видите в течение дня, месяца, года? Пример: Ежемесячно мне нужно платить за подписной сервис X, Y, Z - 100$, работа сотрудников, маркетинг, закупка материалов и другие.'
-        },
-        {
-          subtitle: 'Цена продажи',
-          description: 'Какая на ваш взгляд цена продажи вашего сервиса/продукта? Пример: 200$ в месяц на годовой подписке или 150$ за единицу продукта.'
-        }
-      ]
-    },
-    {
-      title: '4. Команда',
-      content: [
-        {
-          subtitle: 'Ключевые сотрудники',
-          description: 'Укажите основателей, их должности и профессиональный опыт и экспертизу которая может помочь в бизнесе. Добавьте ссылки на их LinkedIn или другие профессиональные профили.'
-        },
-        {
-          subtitle: 'Численность команды',
-          description: 'Примерное количество сотрудников в стартапе. Пример: Кирилл Самородов: Expertise in blockchain and FinTech... CEO/CTO/Director...'
-        }
-      ]
-    },
-    {
-      title: '5. Продукты и услуги',
-      content: [
-        {
-          subtitle: 'Описание продукта',
-          description: 'Основные функции, вторичные функции (на будущее), целевая аудитория. Пример целевой аудитории: Возраст: 18–35 лет, Профессия: студенты, джуниор-разработчики...'
-        },
-        {
-          subtitle: 'Кейсы',
-          description: 'Если есть успешные кейсы продаж вашего продукта/сервиса или отзывы клиентов, добавьте их. Ссылки на демо-версии, примеры использования.'
-        },
-        {
-          subtitle: 'Развитие Продукта',
-          description: 'Последующие фичи или продукты/сервисы которые можно добавить'
-        }
-      ]
-    }
-  ];
+    // Считаем количество заполненных секций
+    return Object.values(sections).filter(fields => 
+      fields.some(field => formData[field]?.trim().length > 0)
+    ).length;
+  };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r 
-          from-[#ff40ff] to-[#a041ff] mb-6 text-center
-          drop-shadow-[0_0_15px_rgba(255,64,255,0.3)]">
+    <div className="min-h-screen bg-[#1a1f2e] relative overflow-hidden">
+      {/* Фон и градиенты */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#1a1f2e] to-[#151923]" />
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="absolute -top-1/2 -right-1/2 w-full h-full 
+          bg-gradient-to-b from-[#e88d7c]/8 to-transparent 
+          blur-[120px] animate-pulse transform rotate-12" />
+        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full 
+          bg-gradient-to-t from-[#b86ef7]/8 to-transparent 
+          blur-[120px] animate-pulse delay-1000 transform -rotate-12" />
+      </div>
+
+      <div className="relative max-w-4xl mx-auto px-4 py-8">
+        <h1 className="text-6xl font-bold text-transparent bg-clip-text 
+          bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-6 text-center">
           Опишите вашу бизнес идею
         </h1>
         
-        <p className="text-center text-gray-300 mb-8">
+        <p className="text-center text-[#d1d5db] mb-8">
           Чем детальнее вы ответите на вопросы, тем более качественный результат получите.
-          У вас есть 6 попыток для улучшения вашего ответа.
+          После заполнения формы будут сгенерированы:
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <SpotlightCard className="p-4">
-            <textarea
-              value={mainText}
-              onChange={(e) => setMainText(e.target.value)}
-              placeholder="Опишите вашу бизнес идею здесь..."
-              className="w-full min-h-[200px] bg-transparent text-white focus:outline-none"
-              style={{ resize: 'vertical' }}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <SpotlightCard className="p-6">
+            <h3 className="text-xl font-semibold text-white mb-2">Лендинг</h3>
+            <p className="text-[#d1d5db]">
+              Продающая страница для вашего проекта с оптимальной структурой и контентом
+            </p>
           </SpotlightCard>
 
-          {sections.map((section, index) => (
-            <Accordion
-              key={index}
-              title={section.title}
-              isOpen={openSection === index}
-              onClick={(e) => {
-                e.preventDefault();
-                handleAccordionClick(index);
-              }}
-            >
-              <div className="space-y-4">
-                {section.content.map((item, i) => (
-                  <div key={i}>
-                    <h3 className="text-pink-500 font-medium mb-1">
-                      {item.subtitle}
-                    </h3>
-                    <p className="text-gray-300">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </Accordion>
-          ))}
+          <SpotlightCard className="p-6">
+            <h3 className="text-xl font-semibold text-white mb-2">Pitch Deck</h3>
+            <p className="text-[#d1d5db]">
+              Презентация для инвесторов с ключевыми метриками и бизнес-моделью
+            </p>
+          </SpotlightCard>
+        </div>
 
-          <motion.button
-            type="submit"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full px-8 py-4 text-lg text-white rounded-full
-              bg-gradient-to-r from-[#ff40ff] to-[#a041ff] 
-              hover:opacity-90 transition-all
-              shadow-[0_0_15px_rgba(255,64,255,0.5)]
-              animate-gradient"
+        <div className="space-y-4">
+          <Accordion 
+            title={
+              <div className="flex justify-between items-center w-full pr-8">
+                <span>1. Общая информация о компании</span>
+                <span className="text-sm text-gray-400">
+                  {formData.companyName || formData.description || formData.location ? '✓' : ''}
+                </span>
+              </div>
+            }
+            isOpen={openSection === 1}
+            onClick={() => setOpenSection(openSection === 1 ? null : 1)}
           >
-            Отправить ответ ({currentIteration}/6)
-          </motion.button>
-        </form>
-      </motion.div>
+            <FormField
+              label="Название стартапа"
+              placeholder="Введите название вашей компании"
+              value={formData.companyName}
+              onChange={(e) => setFormData({...formData, companyName: e.target.value})}
+              description="Ваше уникальное название, как оно зарегистрировано юридически или как бы вы хотели его зарегистрировать"
+            />
+            <FormField
+              label="Описание"
+              type="textarea"
+              placeholder="Краткое, но ёмкое описание вашей компании"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              description='Например: "Algolla предоставляет бизнес-аналитику и прогнозы для e-commerce платформ"'
+            />
+            <FormField
+              label="Локация"
+              placeholder="Страна и город"
+              value={formData.location}
+              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              description="Пример: Москва, Российская Федерация"
+            />
+          </Accordion>
+
+          <Accordion 
+            title={
+              <div className="flex justify-between items-center w-full pr-8">
+                <span>2. Данные о вашей деятельности</span>
+                <span className="text-sm text-gray-400">
+                  {formData.industry || formData.mission || formData.features ? '✓' : ''}
+                </span>
+              </div>
+            }
+            isOpen={openSection === 2}
+            onClick={() => setOpenSection(openSection === 2 ? null : 2)}
+          >
+            <FormField
+              label="Индустрия"
+              placeholder="Введите вашу индустрию"
+              value={formData.industry}
+              onChange={(e) => setFormData({...formData, industry: e.target.value})}
+              description="Например: IT, Финансы, Медицина"
+            />
+            <FormField
+              label="Миссия"
+              placeholder="Введите вашу миссию"
+              value={formData.mission}
+              onChange={(e) => setFormData({...formData, mission: e.target.value})}
+              description="Например: Создание инновационных решений для улучшения жизни людей"
+            />
+            <FormField
+              label="Особенности"
+              placeholder="Введите особенности вашей компании"
+              value={formData.features}
+              onChange={(e) => setFormData({...formData, features: e.target.value})}
+              description="Например: Социальная ответственность, Быстрое развитие"
+            />
+          </Accordion>
+
+          <Accordion 
+            title={
+              <div className="flex justify-between items-center w-full pr-8">
+                <span>3. Финансовые данные</span>
+                <span className="text-sm text-gray-400">
+                  {formData.investments || formData.financingPlans || formData.expenses || formData.pricing ? '✓' : ''}
+                </span>
+              </div>
+            }
+            isOpen={openSection === 3}
+            onClick={() => setOpenSection(openSection === 3 ? null : 3)}
+          >
+            <FormField
+              label="Инвестиции"
+              placeholder="Введите сумму инвестиций"
+              value={formData.investments}
+              onChange={(e) => setFormData({...formData, investments: e.target.value})}
+              description="Например: 100,000 долларов"
+            />
+            <FormField
+              label="Финансирование"
+              placeholder="Введите план финансирования"
+              value={formData.financingPlans}
+              onChange={(e) => setFormData({...formData, financingPlans: e.target.value})}
+              description="Например: Получение кредита от банка"
+            />
+            <FormField
+              label="Расходы"
+              placeholder="Введите ежемесячные расходы"
+              value={formData.expenses}
+              onChange={(e) => setFormData({...formData, expenses: e.target.value})}
+              description="Например: 5,000 долларов"
+            />
+            <FormField
+              label="Цена"
+              placeholder="Введите цену"
+              value={formData.pricing}
+              onChange={(e) => setFormData({...formData, pricing: e.target.value})}
+              description="Например: 100 долларов"
+            />
+          </Accordion>
+
+          <Accordion 
+            title={
+              <div className="flex justify-between items-center w-full pr-8">
+                <span>4. Команда</span>
+                <span className="text-sm text-gray-400">
+                  {formData.team || formData.teamSize ? '✓' : ''}
+                </span>
+              </div>
+            }
+            isOpen={openSection === 4}
+            onClick={() => setOpenSection(openSection === 4 ? null : 4)}
+          >
+            <FormField
+              label="Команда"
+              placeholder="Введите название команды"
+              value={formData.team}
+              onChange={(e) => setFormData({...formData, team: e.target.value})}
+              description="Например: Team Alpha"
+            />
+            <FormField
+              label="Размер команды"
+              placeholder="Введите размер команды"
+              value={formData.teamSize}
+              onChange={(e) => setFormData({...formData, teamSize: e.target.value})}
+              description="Например: 10 человек"
+            />
+          </Accordion>
+
+          <Accordion 
+            title={
+              <div className="flex justify-between items-center w-full pr-8">
+                <span>5. Продукты и услуги</span>
+                <span className="text-sm text-gray-400">
+                  {formData.product || formData.targetAudience || formData.cases || formData.development ? '✓' : ''}
+                </span>
+              </div>
+            }
+            isOpen={openSection === 5}
+            onClick={() => setOpenSection(openSection === 5 ? null : 5)}
+          >
+            <FormField
+              label="Продукт"
+              placeholder="Введите название продукта"
+              value={formData.product}
+              onChange={(e) => setFormData({...formData, product: e.target.value})}
+              description="Например: Algolla"
+            />
+            <FormField
+              label="Целевая аудитория"
+              placeholder="Введите целевую аудиторию"
+              value={formData.targetAudience}
+              onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
+              description="Например: Бизнес-пользователи"
+            />
+            <FormField
+              label="Кейсы"
+              placeholder="Введите кейсы"
+              value={formData.cases}
+              onChange={(e) => setFormData({...formData, cases: e.target.value})}
+              description="Например: Кейс 1, Кейс 2"
+            />
+            <FormField
+              label="Разработка"
+              placeholder="Введите этапы разработки"
+              value={formData.development}
+              onChange={(e) => setFormData({...formData, development: e.target.value})}
+              description="Например: Планирование, Проектирование, Разработка"
+            />
+          </Accordion>
+
+          <Button
+            variant="gradient"
+            size="lg"
+            className="w-full mt-8 bg-gradient-to-r from-[#ff40ff] to-[#a041ff] 
+              hover:from-[#ff40ff]/90 hover:to-[#a041ff]/90
+              text-white/90 shadow-[0_0_20px_rgba(255,64,255,0.15)]"
+            onClick={handleSubmit}
+          >
+            Отправить ответы
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
