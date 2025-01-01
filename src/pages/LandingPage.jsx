@@ -9,8 +9,8 @@ const FeatureCard = ({ icon, title, description }) => (
     whileInView={{ opacity: 1, y: 0 }}
     whileHover={{ y: -5, scale: 1.02 }}
     transition={{ duration: 0.3 }}
-    className="p-8 rounded-2xl bg-[#1a1f2e]/40 border-[#2b3147]/50
-      hover:border-[#e88d7c]/20 hover:bg-[#1a1f2e]/60 group relative overflow-hidden"
+    className="p-8 rounded-2xl bg-[#1a1f2e]/40 border border-[#2b3147]/50
+      hover:border-[#ff40ff]/20 hover:bg-[#1a1f2e]/60 group relative overflow-hidden"
   >
     <div className="relative">
       <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform">
@@ -49,10 +49,10 @@ const LandingPage = () => {
       <div className="fixed inset-0 bg-gradient-to-b from-[#1a1f2e] to-[#151923]" />
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full 
-          bg-gradient-to-b from-[#e88d7c]/8 to-transparent 
+          bg-gradient-to-b from-[#ff40ff]/8 to-transparent 
           blur-[120px] animate-pulse transform rotate-12" />
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full 
-          bg-gradient-to-t from-[#b86ef7]/8 to-transparent 
+          bg-gradient-to-t from-[#a041ff]/8 to-transparent 
           blur-[120px] animate-pulse delay-1000 transform -rotate-12" />
       </div>
 
@@ -64,7 +64,7 @@ const LandingPage = () => {
           className="text-center mb-16"
         >
           <h1 className="text-8xl font-bold text-transparent bg-clip-text 
-            bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-6">
+            bg-gradient-to-r from-[#ff40ff] to-[#a041ff] mb-6">
             Founder Mode
           </h1>
           <p className="text-[#d1d5db] text-xl mb-8 leading-relaxed">
@@ -73,7 +73,7 @@ const LandingPage = () => {
           <Button 
             variant="gradient"
             size="lg"
-            className="shadow-[0_0_20px_rgba(232,141,124,0.15)]"
+            className="shadow-[0_0_20px_rgba(255,64,255,0.15)]"
             onClick={() => navigate('/business-form')}
           >
             Начать бесплатно
