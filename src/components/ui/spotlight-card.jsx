@@ -41,7 +41,7 @@ export const SpotlightCard = ({
       onFocus={handleFocus}
       onBlur={handleBlur}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-gray-800 bg-gradient-to-b from-gray-900 to-gray-800",
+        "relative overflow-hidden rounded-2xl bg-gray-800/50 border border-gray-700/50",
         className
       )}
       {...props}
