@@ -13,16 +13,17 @@ const ResultLandingPage = () => {
         <div className="fixed inset-0 bg-gradient-to-b from-[#1a1f2e] to-[#151923]" />
         <div className="fixed inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -right-1/2 w-full h-full 
-            bg-gradient-to-b from-[#e88d7c]/8 to-transparent 
+            bg-gradient-to-b from-[#ff40ff]/8 to-transparent 
             blur-[120px] animate-pulse transform rotate-12" />
           <div className="absolute -bottom-1/2 -left-1/2 w-full h-full 
-            bg-gradient-to-t from-[#b86ef7]/8 to-transparent 
+            bg-gradient-to-t from-[#a041ff]/8 to-transparent 
             blur-[120px] animate-pulse delay-1000 transform -rotate-12" />
         </div>
 
         <div className="relative px-4 py-8">
           <h1 className="text-6xl font-bold text-transparent bg-clip-text 
-            bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-6 text-center">
+            bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-12 text-center 
+            leading-relaxed py-4">
             Landing Page
           </h1>
 

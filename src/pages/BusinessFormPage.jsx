@@ -13,7 +13,7 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
         type="button"
         className={`
           w-full p-4 flex justify-between items-center
-          rounded-lg transition-all duration-300
+          rounded-2xl transition-all duration-300
           ${isOpen 
             ? 'bg-gradient-to-r from-[#ff40ff]/20 to-[#a041ff]/20 shadow-lg' 
             : 'bg-gray-800/50 hover:bg-gray-800/70'
@@ -21,19 +21,12 @@ const Accordion = ({ title, children, isOpen, onClick }) => {
         `}
         onClick={onClick}
       >
-        <div className="flex items-center">
-          <span className={`
-            text-white font-medium text-lg
-            ${isOpen ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#ff40ff] to-[#a041ff]' : ''}
-          `}>
-            {title}
-          </span>
-          {!isOpen && (
-            <span className="ml-2 text-sm text-gray-400">
-              (нажмите, чтобы раскрыть)
-            </span>
-          )}
-        </div>
+        <span className={`
+          text-white font-medium text-lg
+          ${isOpen ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#ff40ff] to-[#a041ff]' : ''}
+        `}>
+          {title}
+        </span>
         <ChevronDownIcon 
           className={`
             w-5 h-5 transition-transform duration-300
@@ -142,16 +135,17 @@ const BusinessFormPage = () => {
       <div className="fixed inset-0 bg-gradient-to-b from-[#1a1f2e] to-[#151923]" />
       <div className="fixed inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -right-1/2 w-full h-full 
-          bg-gradient-to-b from-[#e88d7c]/8 to-transparent 
+          bg-gradient-to-b from-[#ff40ff]/8 to-transparent 
           blur-[120px] animate-pulse transform rotate-12" />
         <div className="absolute -bottom-1/2 -left-1/2 w-full h-full 
-          bg-gradient-to-t from-[#b86ef7]/8 to-transparent 
+          bg-gradient-to-t from-[#a041ff]/8 to-transparent 
           blur-[120px] animate-pulse delay-1000 transform -rotate-12" />
       </div>
 
-      <div className="relative max-w-4xl mx-auto px-4 py-8">
+      <div className="relative px-4 py-8">
         <h1 className="text-6xl font-bold text-transparent bg-clip-text 
-          bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-6 text-center">
+          bg-gradient-to-r from-[#e88d7c] to-[#b86ef7] mb-12 text-center 
+          leading-relaxed py-4">
           Опишите вашу бизнес идею
         </h1>
         
@@ -178,14 +172,7 @@ const BusinessFormPage = () => {
 
         <div className="space-y-4">
           <Accordion 
-            title={
-              <div className="flex justify-between items-center w-full pr-8">
-                <span>1. Общая информация о компании</span>
-                <span className="text-sm text-gray-400">
-                  {formData.companyName || formData.description || formData.location ? '✓' : ''}
-                </span>
-              </div>
-            }
+            title="1. Общая информация о компании"
             isOpen={openSection === 1}
             onClick={() => setOpenSection(openSection === 1 ? null : 1)}
           >
@@ -209,19 +196,12 @@ const BusinessFormPage = () => {
               placeholder="Страна и город"
               value={formData.location}
               onChange={(e) => setFormData({...formData, location: e.target.value})}
-              description="Пример: Москва, Российская Федерация"
+              description="Например: Москва, Российская Федерация"
             />
           </Accordion>
 
           <Accordion 
-            title={
-              <div className="flex justify-between items-center w-full pr-8">
-                <span>2. Данные о вашей деятельности</span>
-                <span className="text-sm text-gray-400">
-                  {formData.industry || formData.mission || formData.features ? '✓' : ''}
-                </span>
-              </div>
-            }
+            title="2. Данные о вашей деятельности"
             isOpen={openSection === 2}
             onClick={() => setOpenSection(openSection === 2 ? null : 2)}
           >
@@ -240,23 +220,17 @@ const BusinessFormPage = () => {
               description="Например: Создание инновационных решений для улучшения жизни людей"
             />
             <FormField
-              label="Особенности"
+              label="Ключевые особенности"
+              type="textarea"
               placeholder="Введите особенности вашей компании"
               value={formData.features}
               onChange={(e) => setFormData({...formData, features: e.target.value})}
-              description="Например: Социальная ответственность, Быстрое развитие"
+              description="Ваши конкурентные преимущества. Например: «AI-аналитика для малого и среднего бизнеса»"
             />
           </Accordion>
 
           <Accordion 
-            title={
-              <div className="flex justify-between items-center w-full pr-8">
-                <span>3. Финансовые данные</span>
-                <span className="text-sm text-gray-400">
-                  {formData.investments || formData.financingPlans || formData.expenses || formData.pricing ? '✓' : ''}
-                </span>
-              </div>
-            }
+            title="3. Финансовые данные"
             isOpen={openSection === 3}
             onClick={() => setOpenSection(openSection === 3 ? null : 3)}
           >
@@ -276,87 +250,101 @@ const BusinessFormPage = () => {
             />
             <FormField
               label="Расходы"
+              type="textarea"
               placeholder="Введите ежемесячные расходы"
               value={formData.expenses}
               onChange={(e) => setFormData({...formData, expenses: e.target.value})}
-              description="Например: 5,000 долларов"
+              description={`Например:\n\n• Подписной сервис X, Y, Z - 100$\n\n• Работа сотрудников\n\n• Маркетинг\n\n• Закупка материалов\n\nПопробуйте вспомнить как можно больше деталей.`}
             />
             <FormField
-              label="Цена"
+              label="Цена продукта/сервиса который вы продаёте"
+              type="textarea"
               placeholder="Введите цену"
               value={formData.pricing}
               onChange={(e) => setFormData({...formData, pricing: e.target.value})}
-              description="Например: 100 долларов"
+              description="Например:
+
+              • 200$ в месяц на годовой подписке (2400$ в год)
+              • 300$ ежемесячно на пол года (1800$ за пол года)
+              • 150$ за единицу продукта/сервиса/установку X, Y, Z"
             />
           </Accordion>
 
           <Accordion 
-            title={
-              <div className="flex justify-between items-center w-full pr-8">
-                <span>4. Команда</span>
-                <span className="text-sm text-gray-400">
-                  {formData.team || formData.teamSize ? '✓' : ''}
-                </span>
-              </div>
-            }
+            title="4. Команда"
             isOpen={openSection === 4}
             onClick={() => setOpenSection(openSection === 4 ? null : 4)}
           >
             <FormField
-              label="Команда"
-              placeholder="Введите название команды"
+              label="Ключевые сотрудники"
+              type="textarea"
+              placeholder="Опишите ключевых сотрудников"
               value={formData.team}
               onChange={(e) => setFormData({...formData, team: e.target.value})}
-              description="Например: Team Alpha"
-            />
-            <FormField
-              label="Размер команды"
-              placeholder="Введите размер команды"
-              value={formData.teamSize}
-              onChange={(e) => setFormData({...formData, teamSize: e.target.value})}
-              description="Например: 10 человек"
+              description={`Например:
+
+• Основатели, их должности
+
+• Профессиональный опыт
+
+• Экспертиза которая может помочь в бизнесе
+
+• Ссылки на LinkedIn или другие профессиональные профили`}
             />
           </Accordion>
 
           <Accordion 
-            title={
-              <div className="flex justify-between items-center w-full pr-8">
-                <span>5. Продукты и услуги</span>
-                <span className="text-sm text-gray-400">
-                  {formData.product || formData.targetAudience || formData.cases || formData.development ? '✓' : ''}
-                </span>
-              </div>
-            }
+            title="5. Продукты и услуги"
             isOpen={openSection === 5}
             onClick={() => setOpenSection(openSection === 5 ? null : 5)}
           >
             <FormField
-              label="Продукт"
-              placeholder="Введите название продукта"
+              label="Детальное описание продукта"
+              type="textarea"
+              placeholder="Опишите ваш продукт"
               value={formData.product}
               onChange={(e) => setFormData({...formData, product: e.target.value})}
-              description="Например: Algolla"
+              description={`Например:
+
+• Основные функции
+
+• Вторичные функции (на будущее)`}
             />
             <FormField
               label="Целевая аудитория"
+              type="textarea"
               placeholder="Введите целевую аудиторию"
               value={formData.targetAudience}
               onChange={(e) => setFormData({...formData, targetAudience: e.target.value})}
-              description="Например: Бизнес-пользователи"
+              description={`Например:
+
+• Бизнес-пользователи`}
             />
             <FormField
               label="Кейсы"
+              type="textarea"
               placeholder="Введите кейсы"
               value={formData.cases}
               onChange={(e) => setFormData({...formData, cases: e.target.value})}
-              description="Например: Кейс 1, Кейс 2"
+              description={`Например:
+
+• Успешные кейсы продаж вашего продукта/сервиса
+
+• Отзывы клиентов`}
             />
             <FormField
               label="Разработка"
+              type="textarea"
               placeholder="Введите этапы разработки"
               value={formData.development}
               onChange={(e) => setFormData({...formData, development: e.target.value})}
-              description="Например: Планирование, Проектирование, Разработка"
+              description={`Например:
+
+• Планирование
+
+• Проектирование
+
+• Разработка`}
             />
           </Accordion>
 
