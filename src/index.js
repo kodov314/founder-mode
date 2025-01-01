@@ -1,17 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AIContextProvider } from './context/AIContext';
 import './index.css';
 import App from './App';
-import { AIContextProvider } from './context/AIContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AIContextProvider>
+    <AIContextProvider>
+      <Router>
         <App />
-      </AIContextProvider>
-    </BrowserRouter>
+      </Router>
+    </AIContextProvider>
   </React.StrictMode>
 );

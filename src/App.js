@@ -2,7 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import LandingPage from './pages/LandingPage';
 import BusinessFormPage from './pages/BusinessFormPage';
-import ResultsPage from './pages/ResultsPage';
+import ResultLandingPage from './pages/ResultLandingPage';
+import ResultPitchDeckPage from './pages/ResultPitchDeckPage';
 
 function App() {
   return (
@@ -10,7 +11,8 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/business-form" element={<BusinessFormPage />} />
-        <Route path="/results" element={<ResultsPage />} />
+        <Route path="/landing" element={<ResultLandingPage />} />
+        <Route path="/pitch-deck" element={<ResultPitchDeckPage />} />
       </Routes>
     </Layout>
   );
