@@ -22,6 +22,20 @@ const FeatureCard = ({ icon, title, description }) => (
   </motion.div>
 );
 
+const StepCard = ({ number, title, description }) => (
+  <div className="text-center">
+    <div className="text-[#ff40ff] text-4xl font-bold mb-4">
+      {number.toString().padStart(2, '0')}
+    </div>
+    <h3 className="text-white text-xl font-medium mb-2">
+      {title}
+    </h3>
+    <p className="text-[#d1d5db] leading-relaxed">
+      {description}
+    </p>
+  </div>
+);
+
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -43,6 +57,24 @@ const LandingPage = () => {
     }
   ];
 
+  const steps = [
+    {
+      number: 1,
+      title: "Опишите вашу бизнес-идею",
+      description: "Заполните форму с информацией о вашем проекте"
+    },
+    {
+      number: 2,
+      title: "ИИ анализирует и генерирует материалы",
+      description: "Искусственный интеллект обрабатывает данные и создает документы"
+    },
+    {
+      number: 3,
+      title: "Получите готовые Pitch Deck и Landing Page",
+      description: "Готовые материалы для презентации вашего проекта"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-[#1a1f2e] relative overflow-hidden">
       {/* Фон и градиенты */}
@@ -61,7 +93,7 @@ const LandingPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-32"
         >
           <h1 className="text-8xl font-bold text-transparent bg-clip-text 
             bg-gradient-to-r from-[#ff40ff] to-[#a041ff] mb-6">
@@ -82,6 +114,34 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
             {features.map((feature, index) => (
               <FeatureCard key={index} {...feature} />
+            ))}
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center"
+        >
+          <h2 className="text-4xl font-bold text-transparent bg-clip-text 
+            bg-gradient-to-r from-[#ff40ff] to-[#a041ff] mb-16">
+            Как это работает?
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            <div className="hidden md:block absolute top-8 left-[20%] right-[20%] h-px 
+              bg-gradient-to-r from-[#ff40ff]/20 via-[#a041ff]/20 to-[#ff40ff]/20" />
+
+            {steps.map((step, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+              >
+                <StepCard {...step} />
+              </motion.div>
             ))}
           </div>
         </motion.div>
